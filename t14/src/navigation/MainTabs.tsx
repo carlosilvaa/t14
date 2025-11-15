@@ -5,6 +5,7 @@ import Profile from '@/screens/profile/ProfileScreen';
 import colors from '@/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
+import Amigos from '@/screens/auth/Amigos';
 
 function Placeholder({ label }: { label: string }) {
   return (
@@ -42,7 +43,7 @@ export default function MainTabs() {
     >
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Grupos" children={() => <Placeholder label="Grupos" />} />
-      <Tab.Screen name="Amigos" children={() => <Placeholder label="Amigos" />} />
+      <Tab.Screen name="Amigos" component={Amigos}/> 
       <Tab.Screen name="Notificações" children={() => <Placeholder label="Notificações" />} />
       <Tab.Screen name="Perfil" component={Profile} />
     </Tab.Navigator>

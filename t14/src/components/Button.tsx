@@ -8,6 +8,7 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   variant?: 'primary' | 'ghost' | 'outline';
+  style?: any;
 };
 
 export default function Button({ title, onPress, disabled, loading, variant = 'primary' }: Props) {
