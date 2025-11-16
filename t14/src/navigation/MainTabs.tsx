@@ -6,6 +6,7 @@ import colors from '@/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
 import Amigos from '@/screens/auth/Amigos';
+import Notificacoes from '@/screens/auth/Notificacoes';
 
 function Placeholder({ label }: { label: string }) {
   return (
@@ -33,7 +34,7 @@ export default function MainTabs() {
             Home: focused ? 'home' : 'home-outline',
             Grupos: focused ? 'people' : 'people-outline',
             Amigos: focused ? 'person-add' : 'person-add-outline',
-            'Notificações': focused ? 'notifications' : 'notifications-outline',
+            Notificacoes: focused ? 'notifications' : 'notifications-outline',
             Perfil: focused ? 'person' : 'person-outline',
           };
           const name = map[route.name] ?? 'ellipse';
@@ -44,7 +45,7 @@ export default function MainTabs() {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Grupos" children={() => <Placeholder label="Grupos" />} />
       <Tab.Screen name="Amigos" component={Amigos}/> 
-      <Tab.Screen name="Notificações" children={() => <Placeholder label="Notificações" />} />
+      <Tab.Screen name="Notificacoes" component={Notificacoes} options={{tabBarLabel:"Notificações", headerTitle:"Notificações"}} />
       <Tab.Screen name="Perfil" component={Profile} />
     </Tab.Navigator>
   );
