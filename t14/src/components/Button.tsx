@@ -1,17 +1,17 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import colors from '@/theme/colors';
 
 type Props = {
-  title: string;
+  title: string | ReactNode;
   onPress?: () => void;
   disabled?: boolean;
   loading?: boolean;
   variant?: 'primary' | 'ghost' | 'outline';
-  style?: any;
+  style?: object;
 };
 
-export default function Button({ title, onPress, disabled, loading, variant = 'primary' }: Props) {
+export default function Button({ title, onPress, disabled, loading, variant = 'primary', style }: Props) {
   return (
     <TouchableOpacity
       style={[
@@ -19,13 +19,18 @@ export default function Button({ title, onPress, disabled, loading, variant = 'p
         variant === 'ghost' && s.ghost,
         variant === 'outline' && s.outline,
         disabled && s.disabled,
+        style,
       ]}
       onPress={onPress}
       disabled={!!disabled || !!loading}
       accessibilityRole="button"
     >
       {loading ? <ActivityIndicator /> : (
+        typeof title === 'string' ? (
         <Text style={[s.text, (variant !== 'primary') && s.textAlt]}>{title}</Text>
+        ) : (
+          title
+         )
       )}
     </TouchableOpacity>
   );
