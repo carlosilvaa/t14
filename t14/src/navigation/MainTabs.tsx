@@ -44,12 +44,9 @@ export default function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Grupos" children={() => <Placeholder label="Grupos" />} />
       <Tab.Screen name="Amigos" component={Amigos}/> 
       <Tab.Screen name="Notificacoes" component={Notificacoes} options={{tabBarLabel:"Notificações", headerTitle:"Notificações"}} />
       <Tab.Screen name="Grupos" component={GruposNavigator} options={{headerShown: false}}/>
-      <Tab.Screen name="Amigos" children={() => <Placeholder label="Amigos" />} />
-      <Tab.Screen name="Notificações" children={() => <Placeholder label="Notificações" />} />
       <Tab.Screen name="Perfil" component={Profile} />
     </Tab.Navigator>
   );
