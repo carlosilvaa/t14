@@ -9,12 +9,14 @@ import {
 } from "react-native";
 import colors from "@/theme/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileScreen({ navigation }: any) {
   const [email, setEmail] = useState("rogerio@gmail.com");
   const [name, setName] = useState("Rogério");
   const [phone, setPhone] = useState("+351 123 456 789");
   const [notif, setNotif] = useState(true);
+  const { logout } = useAuth();
 
   const onRemove = () => {
     Alert.alert("Queres apagar a conta?", "", [
@@ -91,7 +93,13 @@ export default function ProfileScreen({ navigation }: any) {
           icon={<Ionicons name="log-out-outline" size={20} color={colors.textDark} />}
           label="Sair"
           chevron
-          onPress={() => Alert.alert("Terminado sessão")}
+          onPress={async () => {
+            try {
+              await logout();
+            } catch (err) {
+              console.log("Erro ao sair:", err);
+            }
+          }}
         />
         <Row
           icon={<Ionicons name="person-remove-outline" size={20} color={"#E11D48"} />}

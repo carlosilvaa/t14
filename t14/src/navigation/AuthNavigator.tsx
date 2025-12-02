@@ -8,7 +8,11 @@ import Reset from '@/screens/auth/ResetPasswordScreen';
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
-  VerifyCode: { email: string };
+  VerifyCode: {
+    email: string;
+    name: string;
+    password: string;
+  };
   ResetPassword: undefined;
 };
 
@@ -25,7 +29,6 @@ export default function AuthNavigator() {
     >
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
       <Stack.Screen name="Register" component={Register} options={{ title: 'Registo' }} />
-      <Stack.Screen name="VerifyCode" component={Verify} options={{ title: 'Verifique o seu email' }} />
       <Stack.Screen name="ResetPassword" component={Reset} options={{ title: 'Redefinir palavra-passe' }} />
     </Stack.Navigator>
   );
