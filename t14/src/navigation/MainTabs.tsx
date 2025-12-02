@@ -6,8 +6,8 @@ import GruposNavigator from '@/navigation/GruposNavigator'
 import colors from '@/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
-import Amigos from '@/screens/auth/Amigos';
-import Notificacoes from '@/screens/auth/Notificacoes';
+import Amigos from '@/screens/friends/Amigos';
+import Notificacoes from '@/screens/notify/Notificacoes';
 
 function Placeholder({ label }: { label: string }) {
   return (
