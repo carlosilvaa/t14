@@ -5,6 +5,8 @@ import colors from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import Tab from "@/components/Tab";
 import Input from "@/components/Input";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebase/config"
 
 type DetalhesGrupo = {
   id: string;
@@ -87,6 +89,7 @@ export default function DetalhesGrupo({ route, navigation }: any) {
 
       {abaAtiva === "Despesas" && (
         <>
+        <ScrollView>
           <View style={s.cardsRow}>
             <View style={[s.metricCard, { marginRight: 12 }]}>
               <Text style={s.metricLabel}>Total gasto</Text>
@@ -107,6 +110,7 @@ export default function DetalhesGrupo({ route, navigation }: any) {
 
           <FlatList
             data={DESPESA}
+            scrollEnabled={false}
             keyExtractor={(i) => i.id}
             contentContainerStyle={{ paddingBottom: 16 }}
             renderItem={({ item }) => <Item item={item} navigation={navigation} />}
@@ -128,82 +132,88 @@ export default function DetalhesGrupo({ route, navigation }: any) {
           <TouchableOpacity>
             <Text style={s.exportar}>Exportar relatório</Text>
           </TouchableOpacity>
+        </ScrollView>
         </>
       )}
 
       {abaAtiva === "Membros" && (
-        <View style={{ padding: 16 }}>
-          <View>
-            <Text style={[s.activitySub, {margin: 10}]}>Membros</Text>
-            <FlatList
-              data={[...AMIGOS].sort((a, b) => a.nome.localeCompare(b.nome))}
-              horizontal
-              contentContainerStyle={{ paddingBottom: 16 }}
-              renderItem={({ item }) => <ListaMembros amigo={item} />}
-              ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-            />
-          </View>
+        <ScrollView>
+          <View style={{ padding: 16 }}>
+            <View>
+              <Text style={[s.activitySub, {margin: 10}]}>Membros</Text>
+              <FlatList
+                data={[...AMIGOS].sort((a, b) => a.nome.localeCompare(b.nome))}
+                horizontal
+                contentContainerStyle={{ paddingBottom: 16 }}
+                renderItem={({ item }) => <ListaMembros amigo={item} />}
+                ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+              />
+            </View>
 
-          <View>
-            <Text style={[s.activitySub, {margin: 10}]}>Adicionar amigo ao grupo</Text>
-            <Input
-              placeholder="Pesquisar amigos"
-              value={pesquisarAmigo}
-              onChangeText={setPesquisarAmigo}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={s.input}
-            />
-            <FlatList
-              data={[...amigosFiltrados].sort((a, b) => a.nome.localeCompare(b.nome))}
-              contentContainerStyle={{ paddingBottom: 16 }}
-              renderItem={({ item }) =>
-                  <ListaAmigos 
-                    amigo={item} 
-                    selecionado={selecionados.includes(item.id)} 
-                    onPress={() => {
-                      if (selecionados.includes(item.id)) {
-                        setSelecionados(prev => prev.filter(id => id !== item.id));
-                      } else {
-                        setSelecionados(prev => [...prev, item.id]);
-                      }
-                    }}
-                  />}
-                ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-            />
+            <View>
+              <Text style={[s.activitySub, {margin: 10}]}>Adicionar amigo ao grupo</Text>
+              <Input
+                placeholder="Pesquisar amigos"
+                value={pesquisarAmigo}
+                onChangeText={setPesquisarAmigo}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={s.input}
+              />
+              <FlatList
+                data={[...amigosFiltrados].sort((a, b) => a.nome.localeCompare(b.nome))}
+                scrollEnabled={false}
+                contentContainerStyle={{ paddingBottom: 16 }}
+                renderItem={({ item }) =>
+                    <ListaAmigos 
+                      amigo={item} 
+                      selecionado={selecionados.includes(item.id)} 
+                      onPress={() => {
+                        if (selecionados.includes(item.id)) {
+                          setSelecionados(prev => prev.filter(id => id !== item.id));
+                        } else {
+                          setSelecionados(prev => [...prev, item.id]);
+                        }
+                      }}
+                    />}
+                  ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+              />
+            </View>
+            {selecionados.length > 0 && (
+              <Button 
+                title={`Adicionar ${selecionados.length} amigo(s)`} 
+                onPress={adicionarSelecionados} 
+                style={{ marginTop: 16 }} 
+              />
+            )}
           </View>
-          {selecionados.length > 0 && (
-            <Button 
-              title={`Adicionar ${selecionados.length} amigo(s)`} 
-              onPress={adicionarSelecionados} 
-              style={{ marginTop: 16 }} 
-            />
-          )}
-        </View>
+        </ScrollView>
       )}
 
       {abaAtiva === "Saldos" && (
-        <View style={{ padding: 16 }}>
-          <View style={[s.metricCard, { marginRight: 12 }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingBottom: 35 }}>
-              <View>
-                <Text style={s.metricValue}>João</Text>
-                <Text style={s.metricLabel}>A pagar</Text>
+        <ScrollView>
+          <View style={{ padding: 16 }}>
+            <View style={[s.metricCard, { marginRight: 12 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingBottom: 35 }}>
+                <View>
+                  <Text style={s.metricValue}>João</Text>
+                  <Text style={s.metricLabel}>A pagar</Text>
+                </View>
+                  <Text style={s.metricValue}>300€</Text>
               </View>
-                <Text style={s.metricValue}>300€</Text>
             </View>
+
+            <Text style={[s.activitySub, {margin: 10}]}>Movimentações</Text>
+
+            <FlatList
+              data={MOVIMENTACOES}
+              keyExtractor={(i) => i.id}
+              contentContainerStyle={{ paddingBottom: 16 }}
+              renderItem={({ item }) => <Movimentacao item={item} />}
+              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            />
           </View>
-
-          <Text style={[s.activitySub, {margin: 10}]}>Movimentações</Text>
-
-          <FlatList
-            data={MOVIMENTACOES}
-            keyExtractor={(i) => i.id}
-            contentContainerStyle={{ paddingBottom: 16 }}
-            renderItem={({ item }) => <Movimentacao item={item} />}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          />
-        </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -435,5 +445,5 @@ const s = StyleSheet.create({
     padding: 4,
     backgroundColor: "red",
     borderRadius: 25,
-},
+  },
 });
