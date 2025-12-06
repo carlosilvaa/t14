@@ -4,6 +4,8 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import colors from "@/theme/colors";
 import Tab from "@/components/Tab";
+import { collection, addDoc, setDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore"; 
+import { db } from "@/firebase/config"
 
 type Pessoa = {
   id: string;
@@ -27,14 +29,30 @@ export default function DespesaForm({ route, navigation }: any) {
   ]);
 
   const somaDivisoes = () => {
-    return valoresIndividuais.reduce((total, p) => {
-      const valor = parseFloat(p.valor.replace(",", "."));
-      return total + (isNaN(valor) ? 0 : valor);
-    }, 0);
+    if (abaDiferente === "Valor") {
+      return valoresIndividuais.reduce((total, p) => {
+        const valor = parseFloat(p.valor.replace(",", "."));
+        return total + (isNaN(valor) ? 0 : valor);
+      }, 0);
+    }
+
+    if (abaDiferente === "Porcentagem") {
+      return valoresIndividuais.reduce((total, p) => {
+        const perc = parseFloat(p.valor.replace(",", "."));
+        return total + (isNaN(perc) ? 0 : perc);
+      }, 0);
+    }
+    return 0;
   };
 
   const valorTotalNum = parseFloat(valorTotal?.replace(",", ".") || "0");
-  const restante = valorTotalNum - somaDivisoes();
+  let restante;
+
+  if (abaDiferente === "Valor") {
+    restante = valorTotalNum - somaDivisoes();
+  } else {
+    restante = 100 - somaDivisoes();
+  }
 
   useEffect(() => {
     if (modo === "editar" && despesa) {
@@ -52,6 +70,74 @@ export default function DespesaForm({ route, navigation }: any) {
       title: modo === "editar" ? "Editar despesa" : "Nova despesa",
     });
   }, [navigation, modo]);
+
+  const adicionarDespesa = async () => {
+      if (!descricao || !valorTotal || !pagador) {
+        Alert.alert("Erro", "Preencha todos os campos obrigatórios!");
+        return;
+      }
+
+      try {
+        const novaDespesa = {
+          descricao,
+          valorTotal: parseFloat(valorTotal.replace(",", ".")),
+          pagador,
+          abaTipo,
+          abaDiferente,
+          valoresIndividuais: valoresIndividuais.map(p => ({
+            id: p.id,
+            nome: p.nome,
+            valor: parseFloat(p.valor.replace(",", ".")) || 0
+          })),
+          criadoEm: serverTimestamp(),
+        };
+
+        const docRef = await addDoc(collection(db, "despesa"), novaDespesa);
+
+        console.log("Despesa adicionada com ID:", docRef.id);
+        Alert.alert("Sucesso", "Despesa adicionada com sucesso!");
+        navigation.goBack();
+      } catch (error) {
+        console.error("Erro ao adicionar despesa:", error);
+        Alert.alert("Erro", "Não foi possível adicionar a despesa.");
+      }
+    }
+
+  const atualizarDespesa = async () => {
+    if(!descricao || !valorTotal || !pagador ){
+      Alert.alert("Erro", "Preencha todos os campos!");
+      return;
+    }
+
+    try {
+      if (!despesa?.id) {
+        Alert.alert("Erro", "ID da despesa não encontrada");
+        return;
+      }
+
+      const despesaRef = doc(db, "despesa", despesa.id);
+
+      await updateDoc(despesaRef, {
+        descricao,
+        valorTotal: parseFloat(valorTotal.replace(",", ".")),
+        pagador,
+        abaTipo,
+        abaDiferente,
+        valoresIndividuais: valoresIndividuais.map((p) => ({
+          id: p.id,
+          nome: p.nome,
+          valor: parseFloat(p.valor.replace(",", "."))
+        })),
+        atualizadoEm: serverTimestamp(),
+      });
+
+      Alert.alert("Sucesso", "Despesa atualizada com sucesso!");
+      navigation.goBack();
+    } catch (error) {
+      console.log("Erro ao atualizar despesa: ", error);
+      Alert.alert("Erro", "Não foi possível atualizar a despesa");
+    }
+  }
 
   const pessoasIguais: Pessoa[] = [
     { id: "1", nome: "João", valor: "20€" },
@@ -172,17 +258,24 @@ export default function DespesaForm({ route, navigation }: any) {
           </View>
         )}
 
-        {abaTipo === "Diferente" &&(
+        {abaTipo === "Diferente" && (
           <Text style={{ marginTop: 12, fontWeight: "600", color: restante < 0 ? "red" : "#6B7280" }}>
-            {restante >= 0 
-              ? `Falta distribuir: ${restante.toFixed(2)}€` 
-              : `Excedeu o valor em ${Math.abs(restante).toFixed(2)}€`}
+            {abaDiferente === "Valor" ? (
+              restante >= 0
+                ? `Falta distribuir: ${restante.toFixed(2)}€`
+                : `Excedeu o valor em ${Math.abs(restante).toFixed(2)}€`
+            ) : (
+              restante >= 0
+                ? `Falta distribuir: ${restante.toFixed(2)}%`
+                : `Excedeu a porcentagem em ${Math.abs(restante).toFixed(2)}%`
+            )}
           </Text>
         )}
 
         <Button
           title={modo === "editar" ? "Salvar alterações" : "Adicionar despesa"}
           style={{ marginTop: 16 }}
+          onPress={modo === "editar" ? atualizarDespesa : adicionarDespesa}
         />
 
         {modo === "editar" && (
