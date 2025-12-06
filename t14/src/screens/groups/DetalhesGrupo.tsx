@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  Pressable,
   Alert,
   ScrollView,
 } from "react-native";
@@ -179,7 +177,6 @@ export default function DetalhesGrupo({ route, navigation }: any) {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const user = auth.currentUser;
 
-  // Busca o grupo em tempo real
   useEffect(() => {
     const ref = doc(db, "group", grupoId);
 
@@ -247,7 +244,6 @@ export default function DetalhesGrupo({ route, navigation }: any) {
     [amigosDoGrupo, pesquisarAmigo]
   );
 
-  // Total gasto: se o grupo já tiver totalGasto no Firestore, usa ele
   const calcularTotalDespesas = () => {
     if (group?.totalGasto != null) return group.totalGasto;
     return DESPESA.reduce((soma, item) => soma + item.despesa, 0);
@@ -280,6 +276,103 @@ export default function DetalhesGrupo({ route, navigation }: any) {
     );
   }
 
+  return (
+    <ScrollView style={s.container}>
+      <Text style={s.title}>{group.name || name}</Text>
+      <View style={s.divider} />
+
+      <View style={{ marginBottom: 16 }}>
+        <Button title="Editar grupo" onPress={handleEditarGrupo} />
+      </View>
+
+      <Tab abas={abas} abaAtiva={abaAtiva} onChange={(tab: string) => setAbaAtiva(tab)} />
+
+      {abaAtiva === "Despesas" && (
+        <View style={{ paddingVertical: 16 }}>
+          <View style={s.cardsRow}>
+            <View style={[s.metricCard, { marginRight: 12 }]}>
+              <Text style={s.metricLabel}>Total gasto</Text>
+              <Text style={s.metricValue}>{calcularTotalDespesas()}€</Text>
+            </View>
+            <View style={s.metricCard}>
+              <Text style={s.metricLabel}>Você pagou</Text>
+              <Text style={s.metricValue}>–</Text>
+            </View>
+          </View>
+
+          <View style={s.cardsRow}>
+            <View style={[s.metricCard, { alignItems: "center" }]}>
+              <Text style={s.metricLabel}>Seu saldo</Text>
+              <Text
+                style={[
+                  s.metricValue,
+                  { color: meuSaldo >= 0 ? "#2E7D32" : "#C62828" },
+                ]}
+              >
+                {meuSaldo >= 0 ? `+${meuSaldo}€` : `${meuSaldo}€`}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ paddingTop: 12, paddingBottom: 16 }}>
+            {DESPESA.map((item) => (
+              <View key={item.id} style={{ marginBottom: 12 }}>
+                <Item item={item} navigation={navigation} />
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {abaAtiva === "Membros" && (
+        <View style={{ paddingVertical: 16 }}>
+          <Text style={s.sectionTitle}>Membros do grupo</Text>
+
+          <Text style={[s.activitySub, { margin: 10 }]}>
+            Pesquisar entre membros
+          </Text>
+
+          <Input
+            placeholder="Pesquisar membros"
+            value={pesquisarAmigo}
+            onChangeText={setPesquisarAmigo}
+            style={s.input}
+          />
+
+          <View style={{ marginTop: 12, paddingBottom: 16 }}>
+            {amigosFiltrados.map((amigo) => (
+              <View key={amigo.id} style={{ marginBottom: 12 }}>
+                <ListaMembros amigo={amigo} />
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {abaAtiva === "Saldos" && (
+        <View style={{ paddingVertical: 16 }}>
+          <Text style={s.sectionTitle}>Movimentações (mock)</Text>
+
+          <View style={{ paddingTop: 12, paddingBottom: 16 }}>
+            {MOVIMENTACOES.map((item) => (
+              <View key={item.id} style={s.activityCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.activityTitle}>
+                    {item.pagou} → {item.recebeu}
+                  </Text>
+                  <Text style={s.activitySub}>
+                    {item.valor}€ • {item.data.toLocaleDateString()}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+    </ScrollView>
+  );
+}
 
 function Item({ item, navigation }: { item: DetalhesGrupo; navigation: any }) {
   return (
@@ -400,4 +493,4 @@ function Movimentacao({ item }: { item: DetalhesMovimentacao }) {
       </View>
     </TouchableOpacity>
   );
-}}
+}

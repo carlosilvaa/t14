@@ -18,6 +18,8 @@ import { createGroupInFirestore,
 import { auth, db } from "@/firebase/config";
 import { getAllUsers } from "@/firebase/user";
 import { doc, updateDoc, Timestamp } from "firebase/firestore";
+import { Ionicons } from "@expo/vector-icons";
+
 
 type FirebaseUserItem = {
   id: string;
@@ -216,9 +218,7 @@ export default function GrupoForm({ route, navigation }: any) {
       const updatePayload: any = {
         name: nomeGrupo.trim(),
         description: descricao?.trim() || "",
-        // owner + demais membros selecionados
         memberIds: [user.uid, ...memberIdsFromEmails],
-        // mantemos o que já existia + sobrescrevemos/ adicionamos os novos
         members: {
           ...(grupo.members || {}),
           ...membersUpdate,
@@ -278,19 +278,39 @@ export default function GrupoForm({ route, navigation }: any) {
         style={s.input}
       />
 
-      {/* campo de seleção (mantive o input original escondido caso você precise) */}
-      <View style={{ marginBottom: 12 }}>
-        <Button title="Selecionar membros" onPress={() => setOpenSelect(true)} />
-        {selectedMembers.length > 0 && (
-          <View style={{ marginTop: 8 }}>
-            {selectedMembers.map((email) => (
-              <Text key={email} style={{ color: "white" }}>
-                • {email}
-              </Text>
-            ))}
-          </View>
-        )}
+      {/* Membros do grupo */}
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ color: colors.textDark, fontWeight: "600", marginBottom: 6 }}>
+          Membros
+        </Text>
+
+        <View style={s.chipsContainer}>
+          {selectedMembers.map((email) => (
+            <View key={email} style={s.chip}>
+              <Text style={s.chipText}>{email}</Text>
+
+              <TouchableOpacity
+                style={s.chipRemove}
+                onPress={() => toggleSelectEmail(email)}
+              >
+                <Ionicons name="close" size={14} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          {/* Chip para abrir o “select” (modal) e adicionar novos membros */}
+          <TouchableOpacity
+            style={[s.chip, s.chipAdd]}
+            onPress={() => setOpenSelect(true)}
+          >
+            <Ionicons name="add" size={16} color="#fff" />
+            <Text style={[s.chipText, { color: "#fff", marginLeft: 4 }]}>
+              Adicionar
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
 
       <Button
         title={modo === "editar" ? "Salvar alterações" : loadingCreate ? "Criando..." : "Criar grupo"}
@@ -358,12 +378,8 @@ export default function GrupoForm({ route, navigation }: any) {
             </View>
 
             <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>
-              <Button title="Fechar" onPress={() => setOpenSelect(false)} />
-              <Button
-                title="Confirmar"
-                onPress={() => setOpenSelect(false)}
-                style={{ marginLeft: 8 }}
-              />
+              <Button title="Fechar" onPress={() => setOpenSelect(false)} style={{ flex: 1 }} />
+              <Button title="Confirmar" onPress={() => setOpenSelect(false)} style={{ flex: 1, marginLeft: 8 }}/>
             </View>
           </View>
         </View>
@@ -391,6 +407,35 @@ const s = StyleSheet.create({
     backgroundColor: "red",
     marginTop: 12,
   },
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5EEDC",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipText: {
+    color: colors.textDark,
+    fontSize: 13,
+  },
+  chipRemove: {
+    marginLeft: 6,
+    backgroundColor: "red",
+    borderRadius: 10,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  chipAdd: {
+    backgroundColor: colors.primary,
+  },
 
   modalOverlay: {
     flex: 1,
@@ -413,3 +458,4 @@ const s = StyleSheet.create({
     paddingVertical: 10,
   },
 });
+
